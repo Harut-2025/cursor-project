@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  passwordHash  String
+  createdAt     DateTime     @default(now())
+
+  wishlists     Wishlist[]
+  reservations  Reservation[]
+  contributions Contribution[]
+}
+
+model Wishlist {
+  id          String        @id @default(cuid())
+  owner       User          @relation(fields: [ownerId], references: [id])
+  ownerId     String
+
+  title       String
+  description String?
+  occasion    String?
+  eventDate   DateTime?
+  isPublic    Boolean       @default(true)
+  shareSlug   String        @unique
+  createdAt   DateTime      @default(now())
+
+  items       WishlistItem[]
+}
+
+model WishlistItem {
+  id                String          @id @default(cuid())
+  wishlist          Wishlist        @relation(fields: [wishlistId], references: [id])
+  wishlistId        String
+
+  title             String
+  url               String?
+  imageUrl          String?
+  price             Float?
+  currency          String          @default("RUB")
+  notes             String?
+
+  allowGroupFunding Boolean         @default(false)
+  targetAmount      Float?
+  minContribution   Float?
+
+  createdAt         DateTime        @default(now())
+
+  reservations      Reservation[]
+  contributions     Contribution[]
+}
+
+model Reservation {
+  id        String       @id @default(cuid())
+  item      WishlistItem @relation(fields: [itemId], references: [id])
+  itemId    String
+
+  user      User?        @relation(fields: [userId], references: [id])
+  userId    String?
+
+  guestName String?
+  message   String?
+  createdAt DateTime     @default(now())
+}
+
+model Contribution {
+  id        String       @id @default(cuid())
+  item      WishlistItem @relation(fields: [itemId], references: [id])
+  itemId    String
+
+  user      User?        @relation(fields: [userId], references: [id])
+  userId    String?
+
+  guestName String?
+  amount    Float
+  currency  String       @default("RUB")
+  createdAt DateTime     @default(now())
+}
